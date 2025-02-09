@@ -1,0 +1,323 @@
+--TABLE CREATION QUERIES
+
+CREATE TABLE Department(
+DepartmentID INT PRIMARY KEY ,
+DepartmentName VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Employee(
+EmployeeID INT PRIMARY KEY ,
+Name VARCHAR(100) NOT NULL,
+DeptID INT,
+Salary DECIMAL(10,2),
+HireDate Date
+FOREIGN KEY (DeptID) references Department(DepartmentID)
+);
+
+CREATE TABLE Sales(
+SalesID INT PRIMARY KEY ,
+EmpID INT,
+SaleAmount DECIMAL(10,2),
+SaleDate Date
+FOREIGN KEY (EmpID) references Employee(EmployeeID)
+);
+
+SELECT * FROM Department;
+SELECT * FROM Employee;
+SELECT * FROM Sales;
+
+--DATA INPUT QUERIES
+INSERT INTO Department (DepartmentID, DepartmentName) Values (101, 'HR'),
+							(102, 'Marketing'),
+							(103, 'IT'),
+							(104, 'Finance'),
+							(105, 'Sales');
+
+INSERT INTO Employee (EmployeeID, Name, DeptID, Salary, HireDate) VALUES
+(01, 'Ahmed',	103, 5500.00,	'2020-09-23'), --start with A and is in IT
+(02, 'Aaisha',	105, 7000.00,	'2024-02-03'), --start with A and is in sales
+(03, 'Halima',	104, 8000.00,	'2019-06-02'),
+(04, 'Javeria', 101, 3000.00,	'2017-07-29'),
+(05, 'Rabeaa',	102, 4500.00,	'2022-03-22'),
+(06, 'Cashmala',103, 9000.00,	'2023-04-07'), --start with C and is in IT
+(07, 'Omer',	102, 2500.00,	'2016-05-09'),
+(08, 'Tehreem', 103, 6500.00,	'2015-10-11'),
+(09, 'Cemal',	104, 5000.00,	'2021-11-05'),
+(10, 'Sobia',	105, 3500.00,	'2016-12-08'),
+(11, 'Mariyam', 101, 8500.00,	'2021-01-16'),
+(12, 'Iqbal',	102, 7500.00,	'2022-02-18'),
+(13, 'Saira',	103, 9500.00,	'2023-03-26'),
+(14, 'Madiha',	104, 4900.00,	'2024-04-30'),
+(15, 'Saad',	105, 10000.00, '2025-12-31'),
+(16, 'Burhan',	101, 12000.00, '2018-05-02'),
+(17, 'Emaan',	102, 15000.00, '2017-06-20'),
+(18, 'Zobia',	103, 16500.00, '2019-07-01'),
+(19, 'Alishba', 105, 4000.00,	'2025-08-17'),
+(20, 'Danish',	104, 11000.00, '2025-09-19');
+
+
+INSERT INTO Sales (SalesID, EmpID, SaleAmount, SaleDate) VALUES
+(1, 13, 8000.00, '2023-05-01'),
+(2, 13, 7500.00, '2023-06-10'),
+(3, 13, 7000.00, '2023-07-15'), --Saira exceeds 22,500
+
+(4, 06, 9500.00, '2023-01-01'),
+(5, 06, 7000.00, '2023-02-01'),
+(6, 06, 6500.00, '2023-03-01'), --Cashmala sales decrease from prev month
+
+(7, 11, 5500.00, '2022-08-05'),
+(8, 11, 7000.00, '2022-09-12'),
+(9, 11, 8500.00, '2022-10-20'), --Mariyam Sales increasing 
+
+
+(10, 1, 6000.00, '2023-03-20'), -- Ahmed (IT)
+(11, 5, 7500.00, '2023-04-10'), -- Rabeaa (Marketing)
+(12, 10, 4800.00, '2023-06-25'), -- Sobia (Sales)
+(13, 15, 11000.00, '2024-01-15'), -- Saad (Sales)
+(14, 18, 9800.00, '2024-02-20'), -- Zobia (IT)
+(15, 8, 12000.00, '2024-03-10'), -- Tehreem (IT)
+(16, 2, 9000.00, '2024-04-25'), -- Aaisha (Marketing)
+(17, 9, 6700.00, '2024-05-18'), -- Cemal (Finance)
+(18, 20, 8600.00, '2024-06-30'); -- Danish (Finance)
+
+
+--BASIC QUERIES (1-17)
+-- QUERY 1: NAME AND SALARY OF EMPLOYEES WITH SALARY > 5000
+SELECT name AS Name, salary 
+FROM Employee
+WHERE Salary>5000;
+
+-- QUERY 2: Retrieve employees hired after January 1, 2020, who earn more than 4500
+SELECT name AS Name , HireDate, Salary
+FROM Employee
+WHERE HireDate > '2020-01-01' AND Salary>4500;
+
+-- QUERY3: Retrieve employees whose names start with 'A' or 'C' and who belong to the Sales or IT department.
+Select Name, DepartmentName as Department 
+FROM EMPLOYEE AS e
+JOIN Department AS d
+ON  e.DeptID = d.DepartmentID
+WHERE (Name  LIKE 'A%' OR Name  LIKE 'C%' )
+AND deptID IN(103,105);
+
+-- QUERY 4: Find the total salary paid for each department.
+SELECT SUM(e.Salary) AS Total_Salary_paid , d.DepartmentName AS Department
+FROM Employee AS e
+JOIN Department AS d
+ON  e.DeptID = d.DepartmentID
+GROUP BY DepartmentName
+ORDER BY Total_Salary_paid DESC;
+
+--QUERY 5: Count the number of employees in each department.
+SELECT COUNT( EmployeeID) AS Number_of_Employees, d.DepartmentName AS Department
+FROM Employee AS e
+JOIN Department AS d
+ON  e.DeptID = d.DepartmentID
+ GROUP BY DepartmentName
+ ORDER BY Number_of_Employees DESC;
+
+-- QUERY 6: Find the average salary for each department, but only for departments having more than one employee.
+SELECT AVG(e.Salary) AS Avg_Salary, d.DepartmentName AS Department
+FROM Employee as e
+JOIN Department as d 
+ON e.DeptID = d.DepartmentID
+GROUP BY DepartmentName
+HAVING COUNT(EmployeeID) > 1
+ORDER BY Avg_Salary DESC;
+
+-- QUERY 7: Find departments where the total salary exceeds 10,000. (All departments have total salaries >10,000)
+SELECT  d.DepartmentName AS Department, SUM(e.Salary) AS Total_Salary
+FROM Department AS d
+JOIN Employee AS e
+ON  d.DepartmentID = e.DeptID 
+GROUP BY DepartmentName
+HAVING SUM(e.Salary) > 10000;
+
+-- QUERY 8: Find employees who have made more than one sale. (All these employees has made more than 1 sales, 3 times each)
+SELECT e.name AS Name,  COUNT(s.SalesID) AS Number_of_Sales
+FROM Employee AS e
+JOIN Sales AS s
+ON e.EmployeeID = s.EmpID
+GROUP BY e.name
+HAVING COUNT(DISTINCT s.SalesID) >1;
+
+-- QUERY 9: Find employees whose total sales exceed 20,000.
+SELECT e.name AS Name, SUM(s.SaleAmount) AS Total_Sales
+FROM Employee AS e
+JOIN Sales AS s
+ON e.EmployeeID = s.EmpID
+GROUP BY e.name
+HAVING SUM(s.SaleAmount) > 20000
+ORDER BY Total_Sales DESC;
+
+--QUERY 10: Retrieve employee names along with their department names.
+SELECT e.name AS Employee_Name, d.DepartmentName AS Department
+FROM Employee AS e
+JOIN Department AS d
+ON e.DeptID = d.DepartmentID
+ORDER BY e.name ASC;
+
+-- QUERY 11: Retrieve all sales details, including employee names.
+SELECT e.name AS Name, s.* 
+FROM Sales AS s
+JOIN Employee AS e
+ON s.EmpID = e.EmployeeID;
+
+-- QUERY 12: Find the total sales made by each department.
+SELECT SUM(s.SaleAmount) AS Total_Sales, d.DepartmentName AS Department
+FROM Sales AS s
+JOIN Employee AS e ON e.EmployeeID = s.EmpID
+JOIN Department AS d  ON e.deptID = d.DepartmentID
+GROUP BY d.DepartmentName
+ORDER BY Total_Sales DESC ;
+
+-- QUERY 13: Show each employee’s salary along with the average salary across all employees.
+SELECT e.name , e.Salary, (SELECT AVG(Salary) FROM Employee)AS Avg_Salary_of_Employees
+FROM Employee AS e
+ORDER BY e.salary ;
+
+
+-- QUERY 14: Rank employees by salary in descending order (highest to lowest)
+SELECT Name, Salary,
+RANK() OVER (ORDER BY Salary DESC) AS Salary_Rank
+FROM Employee;
+
+-- QUERY 15: Show each employee’s salary and the cumulative total salary ordered by hire date.
+SELECT Name, HireDate, Salary, 
+SUM(Salary) OVER (ORDER BY HireDate) AS Cumulative_Total
+FROM Employee;
+
+-- QUERY 16: Rank employees based on their total sales, with the highest sales getting rank 1.
+SELECT e.Name, SUM(s.SaleAmount) AS total_Sales,
+RANK() OVER (ORDER BY SUM(s.SaleAmount) DESC) AS Sales_Rank
+FROM Employee AS e 
+JOIN Sales AS s
+ON e.EmployeeID = s.EmpID
+GROUP BY e.name;
+
+
+--QUERY 17: Identify employees whose sales in the current month are lower than the previous month's sales.
+WITH MonthlySales AS (
+    SELECT 
+        s.EmpID,
+		e.Name AS Employee_Name,
+        YEAR(s.SaleDate) AS Year,
+        MONTH(s.SaleDate) AS Month,
+        SUM(s.SaleAmount) AS current_sales,
+        LAG(SUM(s.SaleAmount)) OVER (PARTITION BY s.EmpID ORDER BY YEAR(s.SaleDate), MONTH(s.SaleDate)) AS previous_sales
+    FROM Sales AS s
+	JOIN Employee AS e
+	ON s.EmpID = e.EmployeeID
+    GROUP BY EmpID, e.Name,  YEAR(s.SaleDate), MONTH(s.SaleDate)
+)
+
+SELECT EmpID, Employee_Name, Year, Month, current_sales, previous_sales
+FROM MonthlySales
+WHERE current_sales < previous_sales;
+
+
+
+--STORED PROCEDURES AND CATEGORY QUERIES (18-23)
+
+-- QUERY 18: Create a stored procedure to get all employees from a specific department.
+ALTER PROCEDURE EmployeeFromDept 
+@Dept NVARCHAR(50)
+
+AS
+BEGIN
+ SELECT e.* , d.DepartmentName AS Department
+ FROM Department as d
+ JOIN Employee AS e 
+ ON e.DeptID = d.DepartmentID
+ WHERE d.DepartmentName = @Dept;
+ END
+GO
+
+EXEC EmployeeFromDept  @Dept = 'IT'; 
+EXEC EmployeeFromDept  @Dept = 'Finance';
+EXEC EmployeeFromDept  @Dept = 'Marketing';
+EXEC EmployeeFromDept  @Dept = 'Sales';
+EXEC EmployeeFromDept  @Dept = 'HR';
+
+-- QUERY 19: Create a stored procedure to get employees with salaries greater than a given value.
+ALTER PROCEDURE EmployeeWithSalaries
+@SalaryValue DECIMAL(10,2)
+
+AS
+BEGIN
+ SELECT e.Name, e.Salary
+ FROM Employee AS e 
+ WHERE Salary > @SalaryValue;
+ END
+GO
+
+EXEC EmployeeWithSalaries @SalaryValue = 10000.00; --works to find any value greater than this given value
+
+-- QUERY 20: Create a stored procedure to calculate total sales by a given employee.
+ALTER PROCEDURE EmployeeTotalSales
+@EmployeeName VARCHAR(100) 
+
+AS
+BEGIN
+SELECT e.Name, SUM(SaleAmount) AS Total_Sales 
+FROM  Sales AS s
+JOIN Employee AS e 
+ON s.EmpID = e.EmployeeID
+WHERE e.Name= @EmployeeName
+GROUP BY e.Name;
+END
+GO
+
+EXEC EmployeeTotalSales @EmployeeName = 'Aaisha';
+EXEC EmployeeTotalSales @EmployeeName = 'Saira';
+EXEC EmployeeTotalSales @EmployeeName = 'Rabeaa';
+EXEC EmployeeTotalSales @EmployeeName = 'Zobia';
+EXEC EmployeeTotalSales @EmployeeName = 'Cemal';
+EXEC EmployeeTotalSales @EmployeeName = 'Danish';
+EXEC EmployeeTotalSales @EmployeeName = 'Ahmed';
+EXEC EmployeeTotalSales @EmployeeName = 'Saad';
+EXEC EmployeeTotalSales @EmployeeName = 'Mariyam';
+EXEC EmployeeTotalSales @EmployeeName = 'Cashmala';
+EXEC EmployeeTotalSales @EmployeeName = 'Tehreem';
+EXEC EmployeeTotalSales @EmployeeName = 'Sobia';
+
+									
+
+-- QUERY 21: Categorize employees based on salary as Low, Medium, or High.
+SELECT e.Name, e.Salary,
+CASE 
+WHEN e.Salary < 5000 THEN 'Low'
+WHEN e.Salary >= 5000 AND e.Salary < 10000 THEN 'Medium'
+ELSE 'High'
+END AS Salary_Status
+FROM Employee AS e
+ORDER BY Salary ASC;
+   
+
+-- QUERY 22: Categorize sales based on amount as Low, Medium, or High
+SELECT s.SaleAmount AS Sales, 
+CASE 
+WHEN S.SaleAmount < 5000 THEN 'Low'
+WHEN S.SaleAmount >= 5000 AND S.SaleAmount < 10000 THEN 'Medium'
+ELSE 'High'
+END AS Sales_Status
+FROM Sales AS s
+ORDER BY Sales ASC;
+
+-- QUERY 23: Categorize employees based on hire date.
+SELECT Name AS Name, HireDate,
+CASE 
+WHEN HireDate < '2018-01-01' THEN 'Senior Level'
+WHEN HireDate BETWEEN '2018-01-01' AND '2021-12-31' THEN 'Mid Level'
+ELSE 'Junior Level'
+END AS Employee_Status
+FROM Employee 
+ORDER BY HireDate ASC;
+
+
+
+
+
+
+
+
